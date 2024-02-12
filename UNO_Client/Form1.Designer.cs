@@ -28,25 +28,31 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
+            this.components = new System.ComponentModel.Container();
+            this.DrawCardsTimer = new System.Windows.Forms.Timer(this.components);
+            this.NeutralDeck = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // button1
+            // DrawCardsTimer
             // 
-            this.button1.Location = new System.Drawing.Point(390, 135);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(54, 28);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "draw";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.DrawCardsTimer.Interval = 800;
+            this.DrawCardsTimer.Tick += new System.EventHandler(this.DrawCardsTimer_Tick);
+            // 
+            // NeutralDeck
+            // 
+            this.NeutralDeck.Location = new System.Drawing.Point(387, 126);
+            this.NeutralDeck.Name = "NeutralDeck";
+            this.NeutralDeck.Size = new System.Drawing.Size(58, 86);
+            this.NeutralDeck.TabIndex = 0;
+            this.NeutralDeck.Text = "button1";
+            this.NeutralDeck.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(881, 524);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.NeutralDeck);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
@@ -54,7 +60,7 @@
         }
 
         #endregion
-
-        private Button button1;
+        private System.Windows.Forms.Timer DrawCardsTimer;
+        private Button NeutralDeck;
     }
 }
