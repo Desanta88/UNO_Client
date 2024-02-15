@@ -8,7 +8,7 @@ namespace UNO_Client
 {
     public class mazzo
     {
-        public List<carta> Carte;
+        private List<carta> Carte;
 
         public mazzo()
         {
@@ -31,6 +31,14 @@ namespace UNO_Client
         public List<carta> getMazzo()
         {
             return Carte;
+        }
+        public void EliminateCard(carta c)
+        {
+            Carte.Remove(c);
+        }
+        public void AddCard(carta c)
+        {
+            Carte.Add(c);
         }
     }
 }

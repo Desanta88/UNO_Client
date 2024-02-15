@@ -11,7 +11,7 @@ namespace UNO_Client
         public string Simbolo { get; set; }
         public string Colore { get; set; }
 
-        public carta(string s, string c)
+        public carta(string c, string s)
         {
             Simbolo = s;
             Colore = c;
@@ -20,14 +20,6 @@ namespace UNO_Client
         {
             Simbolo = "";
             Colore = "";
-        }
-        public string getSimbolo()
-        {
-            return this.Simbolo;
-        }
-        public string getColore()
-        {
-            return this.Colore;
         }
         public override string ToString()
         {
@@ -38,8 +30,8 @@ namespace UNO_Client
             string[] simboli = new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "r", "s", "p2" };
             string[] colori = new string[] { "y", "g", "b", "re", "p4", "cc" };
             Random r = new Random();
-            int nSimbolo = r.Next(0, simboli.Length - 1);
-            int nColore = r.Next(0, colori.Length - 1);
+            int nSimbolo = r.Next(0, simboli.Length);
+            int nColore = r.Next(0, colori.Length);
             if (colori[nColore] == "p4" || colori[nColore] == "cc")
             {
                 this.Simbolo = colori[nColore];
