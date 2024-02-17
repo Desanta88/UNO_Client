@@ -13,6 +13,9 @@ namespace UNO_Client
         carta FieldCard;
         public int drawCardCounter = 0;//serve solo per l'evento del timer per distribuire le carte ogni tot secondi
         public int DistanceLeft = 300;//distanza di una carta dal bordo sinistro della finestra
+        public bool isUnoButtonPressed = false,isPaused=false;
+        public GroupBox ColorChoose;
+        public EventHandler DeckInteraction= new System.EventHandler(CardSelected);
         public Form1()
         {
             InitializeComponent();
@@ -55,7 +58,7 @@ namespace UNO_Client
         {                                                   //Se almeno una lo è allora torna true,se no false
             for(int i=0; i<m.Count; i++)
             {
-                if ((c.Colore == m[i].Colore) || (c.Simbolo == m[i].Simbolo))
+                if ( ( c.Colore == m[i].Colore || c.Simbolo == m[i].Simbolo ) || (m[i].Colore == "p4" || m[i].Colore == "cc") )
                     return true;
             }
             return false;
@@ -112,20 +115,100 @@ namespace UNO_Client
                     break;
             }
         }
+        public void SpecialCardsEffect(carta c)
+        {
+            if (c.Colore == "p4" || c.Colore == "cc")
+            {
+                ColorChoose = new GroupBox();
+                RadioButton red = new RadioButton();
+                RadioButton blue = new RadioButton();
+                RadioButton green = new RadioButton();
+                RadioButton yellow = new RadioButton();
+
+                ColorChoose.Text = "Scegli il nuovo colore";
+                ColorChoose.Width = 136;
+                ColorChoose.Height = 154;
+                ColorChoose.Location = new Point(378, 49);
+                this.Controls.Add(ColorChoose);
+                ColorChoose.Controls.Add(red);
+                ColorChoose.Controls.Add(blue);
+                ColorChoose.Controls.Add(green);
+                ColorChoose.Controls.Add(yellow);
+
+                if(carte.getLength()==1)
+                    UNOTimer.Stop();
+                foreach (Control con in this.Controls)
+                {
+                    if (con != ColorChoose && Deck.Contains(con) == false)
+                    {
+                        con.Enabled = false;
+                        isPaused = true;
+                    }
+                        
+                }
+                ColorChoose.BringToFront();
+
+                red.Text = "Red";
+                red.Location = new Point(11, 33);
+                red.Name = "re";
+                red.Click += new EventHandler(radioButton_CheckedChanged);
+
+                blue.Text = "Blue";
+                blue.Location = new Point(11, 58);
+                blue.Name = "b";
+                blue.Click += new EventHandler(radioButton_CheckedChanged);
+
+                green.Text = "Green";
+                green.Location = new Point(11, 92);
+                green.Name = "g";
+                green.Click += new EventHandler(radioButton_CheckedChanged);
+
+                yellow.Text = "Yellow";
+                yellow.Location = new Point(11, 117);
+                yellow.Name = "y";
+                yellow.Click += new EventHandler(radioButton_CheckedChanged);
+            }
+        }
         private void CardSelected(object sender, EventArgs e)//evento chiamato dal pulsante premuto
         {
-            carta SelectedCard = carte.getMazzo().Find(x => x.ToString() == (sender as Button).Text);
-            if ((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore))
+            if (isPaused == false)
             {
-                FieldCard = SelectedCard;
-                NeutralDeck.Text = FieldCard.ToString();
-                NeutralDeck.Image = Image.FromFile($"./CarteUNO/{NeutralDeck.Text}.png");
-                carte.EliminateCard(SelectedCard);
-                Deck.Remove(sender as Button);
-                (sender as Button).Dispose();
-                SetBoxColor(SelectedCard.Colore);
+                carta SelectedCard = carte.getMazzo().Find(x => x.ToString() == (sender as Button).Text);
+                if (((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore)) || (SelectedCard.Colore == "p4" || SelectedCard.Colore == "cc"))
+                {
+                    FieldCard = SelectedCard;
+                    SpecialCardsEffect(SelectedCard);
+                    NeutralDeck.Text = FieldCard.ToString();
+                    NeutralDeck.Image = Image.FromFile($"./CarteUNO/{NeutralDeck.Text}.png");
+                    carte.EliminateCard(SelectedCard);
+                    Deck.Remove(sender as Button);
+                    (sender as Button).Dispose();
+                    SetBoxColor(SelectedCard.Colore);
+                }
+                Redraw();
+                if (carte.getLength() == 1 && isPaused == false)
+                {
+                    UNOTimer.Start();
+                }
+                if (carte.getLength() == 0)
+                    MessageBox.Show("Hai vinto!!!");
             }
-            Redraw();
+            
+        }
+        private void radioButton_CheckedChanged(object sender,EventArgs e)
+        {
+            RadioButton rb = sender as RadioButton;
+            FieldCard.Colore = rb.Name;
+            NeutralDeck.Text=rb.Name;
+            SetBoxColor(rb.Name);
+            ColorChoose.Dispose();
+            isPaused = false;
+            foreach (Control con in this.Controls)
+            {
+                con.Enabled = true;
+            }
+            if (carte.getLength() == 1)
+                UNOTimer.Start();
         }
 
         private void HiddenDeck_Click(object sender, EventArgs e)//evento chiamato dal pulsante(deck esterno)
@@ -145,10 +228,42 @@ namespace UNO_Client
                 Redraw();
             }
         }
-        
-        private void Form1_Paint(object sender, PaintEventArgs e)
+
+        private void UNOTimer_Tick(object sender, EventArgs e)
         {
-            
+            if (isUnoButtonPressed == true && Deck.Count!=0)
+            {
+                MessageBox.Show("UNO!");
+                UNOTimer.Stop();
+            }
+            else
+            {
+                MessageBox.Show("non hai premuto il pulsante UNO in tempo");
+                carta c;
+                Button b;
+                for (int i = 0; i < 3; i++)
+                {
+                    c = new carta();
+                    c.RandomCard();
+                    carte.AddCard(c);
+                    b = new Button();
+                    this.Controls.Add(b);
+                    b.Text = c.ToString();
+                    b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                    b.Click += new System.EventHandler(CardSelected);
+                    b.Visible = true;
+                    Deck.Add(b);
+                }
+                Redraw();
+                UNOTimer.Stop();
+            }
+            isUnoButtonPressed = false;
+        }
+
+        private void UNOButton_Click_1(object sender, EventArgs e)
+        {
+            if (Deck.Count == 1)
+                isUnoButtonPressed = true;
         }
     }
 }

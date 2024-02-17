@@ -33,6 +33,8 @@
             this.NeutralDeck = new System.Windows.Forms.Button();
             this.HiddenDeck = new System.Windows.Forms.Button();
             this.CurrentColorBox = new System.Windows.Forms.TextBox();
+            this.UNOTimer = new System.Windows.Forms.Timer(this.components);
+            this.UNOButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // DrawCardsTimer
@@ -70,17 +72,32 @@
             this.CurrentColorBox.Size = new System.Drawing.Size(26, 23);
             this.CurrentColorBox.TabIndex = 2;
             // 
+            // UNOTimer
+            // 
+            this.UNOTimer.Interval = 3000;
+            this.UNOTimer.Tick += new System.EventHandler(this.UNOTimer_Tick);
+            // 
+            // UNOButton
+            // 
+            this.UNOButton.Location = new System.Drawing.Point(429, 414);
+            this.UNOButton.Name = "UNOButton";
+            this.UNOButton.Size = new System.Drawing.Size(32, 23);
+            this.UNOButton.TabIndex = 3;
+            this.UNOButton.Text = "1";
+            this.UNOButton.UseVisualStyleBackColor = true;
+            this.UNOButton.Click += new System.EventHandler(this.UNOButton_Click_1);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(881, 524);
+            this.Controls.Add(this.UNOButton);
             this.Controls.Add(this.CurrentColorBox);
             this.Controls.Add(this.HiddenDeck);
             this.Controls.Add(this.NeutralDeck);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -91,5 +108,7 @@
         private Button NeutralDeck;
         private Button HiddenDeck;
         private TextBox CurrentColorBox;
+        private System.Windows.Forms.Timer UNOTimer;
+        private Button UNOButton;
     }
 }
