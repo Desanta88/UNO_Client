@@ -28,79 +28,76 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            DrawCardsTimer = new System.Windows.Forms.Timer(components);
-            NeutralDeck = new Button();
-            HiddenDeck = new Button();
-            CurrentColorBox = new TextBox();
-            UNOTimer = new System.Windows.Forms.Timer(components);
-            UNOButton = new Button();
-            SuspendLayout();
+            this.components = new System.ComponentModel.Container();
+            this.DrawCardsTimer = new System.Windows.Forms.Timer(this.components);
+            this.NeutralDeck = new System.Windows.Forms.Button();
+            this.HiddenDeck = new System.Windows.Forms.Button();
+            this.CurrentColorBox = new System.Windows.Forms.TextBox();
+            this.UNOTimer = new System.Windows.Forms.Timer(this.components);
+            this.UNOButton = new System.Windows.Forms.Button();
+            this.timer = new System.Windows.Forms.Timer(this.components);
+            this.SuspendLayout();
             // 
             // DrawCardsTimer
             // 
-            DrawCardsTimer.Interval = 800;
-            DrawCardsTimer.Tick += DrawCardsTimer_Tick;
+            this.DrawCardsTimer.Interval = 800;
             // 
             // NeutralDeck
             // 
-            NeutralDeck.Location = new Point(532, 147);
-            NeutralDeck.Name = "NeutralDeck";
-            NeutralDeck.Size = new Size(58, 86);
-            NeutralDeck.TabIndex = 0;
-            NeutralDeck.Text = "button1";
-            NeutralDeck.UseVisualStyleBackColor = true;
+            this.NeutralDeck.Location = new System.Drawing.Point(532, 147);
+            this.NeutralDeck.Name = "NeutralDeck";
+            this.NeutralDeck.Size = new System.Drawing.Size(58, 86);
+            this.NeutralDeck.TabIndex = 0;
+            this.NeutralDeck.Text = "button1";
+            this.NeutralDeck.UseVisualStyleBackColor = true;
             // 
             // HiddenDeck
             // 
-            HiddenDeck.BackColor = Color.Red;
-            HiddenDeck.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            HiddenDeck.Location = new Point(293, 147);
-            HiddenDeck.Name = "HiddenDeck";
-            HiddenDeck.Size = new Size(58, 86);
-            HiddenDeck.TabIndex = 1;
-            HiddenDeck.Text = "UNO";
-            HiddenDeck.UseVisualStyleBackColor = false;
-            HiddenDeck.Click += HiddenDeck_Click;
+            this.HiddenDeck.BackColor = System.Drawing.Color.Red;
+            this.HiddenDeck.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.HiddenDeck.Location = new System.Drawing.Point(293, 147);
+            this.HiddenDeck.Name = "HiddenDeck";
+            this.HiddenDeck.Size = new System.Drawing.Size(58, 86);
+            this.HiddenDeck.TabIndex = 1;
+            this.HiddenDeck.Text = "UNO";
+            this.HiddenDeck.UseVisualStyleBackColor = false;
             // 
             // CurrentColorBox
             // 
-            CurrentColorBox.BackColor = SystemColors.Control;
-            CurrentColorBox.Enabled = false;
-            CurrentColorBox.Location = new Point(643, 180);
-            CurrentColorBox.Name = "CurrentColorBox";
-            CurrentColorBox.Size = new Size(26, 23);
-            CurrentColorBox.TabIndex = 2;
+            this.CurrentColorBox.BackColor = System.Drawing.SystemColors.Control;
+            this.CurrentColorBox.Enabled = false;
+            this.CurrentColorBox.Location = new System.Drawing.Point(643, 180);
+            this.CurrentColorBox.Name = "CurrentColorBox";
+            this.CurrentColorBox.Size = new System.Drawing.Size(26, 23);
+            this.CurrentColorBox.TabIndex = 2;
             // 
             // UNOTimer
             // 
-            UNOTimer.Interval = 3000;
-            UNOTimer.Tick += UNOTimer_Tick;
+            this.UNOTimer.Interval = 3000;
             // 
             // UNOButton
             // 
-            UNOButton.Location = new Point(429, 414);
-            UNOButton.Name = "UNOButton";
-            UNOButton.Size = new Size(32, 23);
-            UNOButton.TabIndex = 3;
-            UNOButton.Text = "1";
-            UNOButton.UseVisualStyleBackColor = true;
-            UNOButton.Click += UNOButton_Click_1;
+            this.UNOButton.Location = new System.Drawing.Point(429, 414);
+            this.UNOButton.Name = "UNOButton";
+            this.UNOButton.Size = new System.Drawing.Size(32, 23);
+            this.UNOButton.TabIndex = 3;
+            this.UNOButton.Text = "1";
+            this.UNOButton.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(881, 524);
-            Controls.Add(UNOButton);
-            Controls.Add(CurrentColorBox);
-            Controls.Add(HiddenDeck);
-            Controls.Add(NeutralDeck);
-            Name = "Form1";
-            Text = "Form1";
-            Load += Form1_Load;
-            ResumeLayout(false);
-            PerformLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(881, 524);
+            this.Controls.Add(this.UNOButton);
+            this.Controls.Add(this.CurrentColorBox);
+            this.Controls.Add(this.HiddenDeck);
+            this.Controls.Add(this.NeutralDeck);
+            this.Name = "Form1";
+            this.Text = "Form1";
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
         }
 
         #endregion
@@ -110,5 +107,6 @@
         private TextBox CurrentColorBox;
         private System.Windows.Forms.Timer UNOTimer;
         private Button UNOButton;
+        private System.Windows.Forms.Timer timer;
     }
 }

@@ -1,6 +1,11 @@
 using System.Timers;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Drawing;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System;
 
 
 namespace UNO_Client
@@ -15,30 +20,57 @@ namespace UNO_Client
         public int DistanceLeft = 300;//distanza di una carta dal bordo sinistro della finestra
         public bool isUnoButtonPressed = false, isPaused = false;
         public GroupBox ColorChoose;
+        public ServerConnection serverCon;
         //public EventHandler DeckInteraction= new System.EventHandler(CardSelected);
-        public Form1()
+        public Form1(ServerConnection sc,string username)
         {
             InitializeComponent();
+            this.Text = username;
+            serverCon = sc;
             FirstNeutralCard();//scelgo la carta iniziale
             SetBoxColor(FieldCard.Colore);//cambio il colore del riquadro
             carte.DrawCards();//estrazione delle carte(classe carta)
             FirstDraw();//visualizzazione delle carte(pulsanti)
+            FirstTurn();
             DrawCardsTimer.Start();//inizia il timer per la distribuzione delle carte iniziali
-
+            Task.Run(ReceiveDataAsync);
+        }
+        public void Block(bool b)
+        {
+            foreach (Control c in this.Controls)
+            {
+                c.Enabled = b;
+            }
+        }
+        public void FirstTurn()
+        {
+            NetworkStream ns;
+            string turno = "";
+            Byte[] ReceiveBytes = new Byte[serverCon.Client.ReceiveBufferSize];
+            ns = serverCon.Client.GetStream();
+            ns.Read(ReceiveBytes);
+            turno = Encoding.ASCII.GetString(ReceiveBytes);
+            if (turno == this.Text)
+            {
+                MessageBox.Show("turno di:"+this.Text);
+            }
+            else
+            {
+                Block(false);
+            }
         }
         public void FirstNeutralCard()//scelta della carta del deck esterno(in mezzo)
         {
-            bool hasColor = false;
-            while (hasColor == false)
-            {
-                FieldCard = new carta();
-                FieldCard.RandomCard();
-                if (FieldCard.Colore != "p4" && FieldCard.Colore != "cc")
-                    hasColor = true;
-            }
+            NetworkStream ns;
+            string carta = "";
+            string[] coloreSimbolo;
+            Byte[] ReceiveBytes = new Byte[serverCon.Client.ReceiveBufferSize];
+            ns = serverCon.Client.GetStream();
+            ns.Read(ReceiveBytes);
+            carta = Encoding.ASCII.GetString(ReceiveBytes);
 
-            NeutralDeck.Text = FieldCard.ToString();
-            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{NeutralDeck.Text}.png");
+            NeutralDeck.Text = carta;
+            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{carta}.png");
 
 
         }
@@ -185,6 +217,10 @@ namespace UNO_Client
                     Deck.Remove(sender as Button);
                     (sender as Button).Dispose();
                     SetBoxColor(SelectedCard.Colore);
+
+                    NetworkStream ns = serverCon.Client.GetStream();
+                    Byte[] BytesToServer = Encoding.ASCII.GetBytes("et" + ";" +FieldCard.Colore+":"+FieldCard.Simbolo);
+                    ns.Write(BytesToServer, 0, BytesToServer.Length);
                 }
                 Redraw();
                 if (carte.getLength() == 1 && isPaused == false)
@@ -193,6 +229,7 @@ namespace UNO_Client
                 }
                 if (carte.getLength() == 0)
                     MessageBox.Show("Hai vinto!!!");
+                Block(false);
             }
 
         }
@@ -268,10 +305,46 @@ namespace UNO_Client
             if (Deck.Count == 1)
                 isUnoButtonPressed = true;
         }
+        private async Task ReceiveDataAsync()
+        {
+            try
+            {
+                NetworkStream ns = serverCon.Client.GetStream();
+                Byte[] bytesFromServer = new byte[serverCon.Client.ReceiveBufferSize];
+                Byte[] bytesToServer;
+                while (true)
+                {
+                    
+                    int bytesRead = await ns.ReadAsync(bytesFromServer, 0, bytesFromServer.Length);
+                    if (bytesRead > 0)
+                    {
+                        string response = Encoding.ASCII.GetString(bytesFromServer, 0, bytesRead);
+                        if (response.Contains("yt"))
+                        {
+                            Block(true);
+                            string[] ColoreSimbolo = response.Split(";")[1].Split(":");
+                            carta c = new carta(ColoreSimbolo[0], ColoreSimbolo[1]);
+                            FieldCard = c;
+                            NeutralDeck.Text = FieldCard.ToString();
+                            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{FieldCard.ToString()}.png");
+
+                        }
+                    }
+                    else
+                    {
+                        await Task.Delay(100); // Attendi un breve periodo prima di leggere di nuovo lo stream
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Errore durante la ricezione dei dati dal server: " + ex.Message);
+            }
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+
         }
     }
 }
