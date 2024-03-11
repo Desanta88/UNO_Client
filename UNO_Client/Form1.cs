@@ -36,7 +36,6 @@ namespace UNO_Client
             FirstTurn(ftu);
             DrawCardsTimer.Start();//inizia il timer per la distribuzione delle carte iniziali
             ChangeCardTimer.Start();
-            //Task.Run(ReceiveDataAsync);
         }
         public void Block(bool b)
         {
@@ -179,7 +178,7 @@ namespace UNO_Client
             if (isPaused == false)
             {
                 carta SelectedCard = carte.getMazzo().Find(x => x.ToString() == (sender as Button).Text);
-                if (((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore)) || SelectedCard.Colore == "cc")
+                if (((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore)) || (SelectedCard.Colore == "cc" || SelectedCard.Colore == "p4"))
                 {
                     if (SpecialCardsEffect(SelectedCard) == false)
                     {
@@ -192,7 +191,7 @@ namespace UNO_Client
                         SetBoxColor(SelectedCard.Colore);
                         drawCardCounter--;
                         Player.SendMessage(SelectedCard.Colore + ":" + SelectedCard.Simbolo + ";" + this.Text);
-                        if (SelectedCard.Simbolo == "s" || SelectedCard.Simbolo == "r")
+                        if (SelectedCard.Simbolo == "s" || SelectedCard.Simbolo == "r" || SelectedCard.Simbolo == "p4" || SelectedCard.Simbolo == "p2")
                             Block(true);
                         else
                             Block(false);
@@ -202,7 +201,6 @@ namespace UNO_Client
                         carte.EliminateCard(SelectedCard);
                         Deck.Remove(sender as Button);
                         (sender as Button).Dispose();
-                        drawCardCounter--;
                     }
                 }
                 Redraw();
@@ -241,8 +239,14 @@ namespace UNO_Client
             {
                 NeutralDeck.Image = Image.FromFile($"./CarteUNO/cccc.png");
                 Player.SendMessage($"{FieldCard.Colore}:cc;{this.Text}");
+                Block(false);
             }
-            Block(false);
+            else if (FieldCard.ToString().Contains("p4"))
+            {
+                NeutralDeck.Image = Image.FromFile($"./CarteUNO/p4p4.png");
+                Player.SendMessage($"{FieldCard.Colore}:p4;{this.Text}");
+                Block(true);
+            }
         }
 
         private void UNOTimer_Tick(object sender, EventArgs e)//questo timer si attiva quando mi rimane una carta
@@ -312,8 +316,50 @@ namespace UNO_Client
                         carta c = new carta(cardCodes[0], cardCodes[1]);
                         FieldCard = c;
                         NeutralDeck.Text = FieldCard.ToString();
-                        
-                        if (cardCodes[1]=="cc")
+
+                        if (cardCodes[1] == "p4")
+                        {
+                            NeutralDeck.Image = Image.FromFile($"./CarteUNO/p4p4.png");
+                            Player.CurrentMessage = "";
+                            for (int i = 0; i < 4; i++)
+                            {
+                                c = new carta();
+                                c.RandomCard();
+                                carte.AddCard(c);
+                                Button b = new Button();
+                                this.Controls.Add(b);
+                                b.Text = c.ToString();
+                                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                                b.Click += new System.EventHandler(CardSelected);
+                                b.TextAlign = ContentAlignment.MiddleRight;
+                                b.Visible = true;
+                                Deck.Add(b);
+                            }
+                            Redraw();
+                            Block(false);
+                        }
+                        else if (cardCodes[1] == "p2")
+                        {
+                            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{cardCodes[0]}{cardCodes[1]}.png");
+                            Player.CurrentMessage = "";
+                            for (int i = 0; i < 2; i++)
+                            {
+                                c = new carta();
+                                c.RandomCard();
+                                carte.AddCard(c);
+                                Button b = new Button();
+                                this.Controls.Add(b);
+                                b.Text = c.ToString();
+                                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                                b.Click += new System.EventHandler(CardSelected);
+                                b.TextAlign = ContentAlignment.MiddleRight;
+                                b.Visible = true;
+                                Deck.Add(b);
+                            }
+                            Redraw();
+                            Block(false);
+                        }
+                        else if (cardCodes[1]=="cc")
                         {
                             NeutralDeck.Image = Image.FromFile($"./CarteUNO/cccc.png");
                             Player.CurrentMessage = "";
@@ -361,9 +407,9 @@ namespace UNO_Client
                 b.Click += new System.EventHandler(CardSelected);
                 b.Visible = true;
                 b.TextAlign = ContentAlignment.MiddleRight;
-                drawCardCounter++;
                 Deck.Add(b);
                 Redraw();
+                HiddenDeckCount++;
             }
         }
 
