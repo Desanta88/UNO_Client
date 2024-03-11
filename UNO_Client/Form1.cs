@@ -20,20 +20,23 @@ namespace UNO_Client
         public int DistanceLeft = 300;//distanza di una carta dal bordo sinistro della finestra
         public bool isUnoButtonPressed = false, isPaused = false;
         public GroupBox ColorChoose;
-        public ServerConnection serverCon;
-        //public EventHandler DeckInteraction= new System.EventHandler(CardSelected);
-        public Form1(ServerConnection sc,string username)
+        public Client Player;
+        public bool SpecialCardInEffect = false;
+       
+        public Form1(Client c,string username,string fc,string ftu)
         {
             InitializeComponent();
             this.Text = username;
-            serverCon = sc;
-            FirstNeutralCard();//scelgo la carta iniziale
+            Player = c;
+            string[] fcSymbolColor = fc.Split(":");
+            FirstNeutralCard(fcSymbolColor[0], fcSymbolColor[1]);//scelgo la carta iniziale
             SetBoxColor(FieldCard.Colore);//cambio il colore del riquadro
-            carte.DrawCards();//estrazione delle carte(classe carta)
+            carte.DrawCards(7);//estrazione delle carte(classe carta)
             FirstDraw();//visualizzazione delle carte(pulsanti)
-            FirstTurn();
+            FirstTurn(ftu);
             DrawCardsTimer.Start();//inizia il timer per la distribuzione delle carte iniziali
-            Task.Run(ReceiveDataAsync);
+            ChangeCardTimer.Start();
+            //Task.Run(ReceiveDataAsync);
         }
         public void Block(bool b)
         {
@@ -42,15 +45,9 @@ namespace UNO_Client
                 c.Enabled = b;
             }
         }
-        public void FirstTurn()
+        public void FirstTurn(string cu)
         {
-            NetworkStream ns;
-            string turno = "";
-            Byte[] ReceiveBytes = new Byte[serverCon.Client.ReceiveBufferSize];
-            ns = serverCon.Client.GetStream();
-            ns.Read(ReceiveBytes);
-            turno = Encoding.ASCII.GetString(ReceiveBytes);
-            if (turno == this.Text)
+            if (cu == this.Text )
             {
                 MessageBox.Show("turno di:"+this.Text);
             }
@@ -58,21 +55,16 @@ namespace UNO_Client
             {
                 Block(false);
             }
+            Player.CurrentMessage = "";
         }
-        public void FirstNeutralCard()//scelta della carta del deck esterno(in mezzo)
+        public void FirstNeutralCard(string color,string symbol)//scelta della carta del deck esterno(in mezzo)
         {
-            NetworkStream ns;
-            string carta = "";
-            string[] coloreSimbolo;
-            Byte[] ReceiveBytes = new Byte[serverCon.Client.ReceiveBufferSize];
-            ns = serverCon.Client.GetStream();
-            ns.Read(ReceiveBytes);
-            carta = Encoding.ASCII.GetString(ReceiveBytes);
+            carta card=new carta(color,symbol);
 
-            NeutralDeck.Text = carta;
-            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{carta}.png");
+            FieldCard = card;
 
-
+            NeutralDeck.Text = FieldCard.ToString();
+            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{FieldCard.ToString()}.png");
         }
         public void Redraw()//ridisegna tutte le carte del mazzo(uso questa ogni volta che uso una carta)
         {
@@ -95,7 +87,7 @@ namespace UNO_Client
             }
             return false;
         }
-        public bool FirstDraw()//creazione dei pulsanti(carte fisiche)
+        public void FirstDraw()//creazione dei pulsanti(carte fisiche)
         {
             int drawCardCounter = 0;
             while (drawCardCounter < 7)
@@ -110,46 +102,23 @@ namespace UNO_Client
                 Deck.Add(b);
                 drawCardCounter++;
             }
-            return true;
+            
         }
 
-        private void DrawCardsTimer_Tick(object sender, EventArgs e)//timer per la distribuzione della singola carta ogni secondo
-        {
-            if (drawCardCounter < 7)
-            {
-                Deck[drawCardCounter].Top = 300;
-                Deck[drawCardCounter].Left = DistanceLeft;
-                Deck[drawCardCounter].Width = 54;
-                Deck[drawCardCounter].Height = 86;
-                Deck[drawCardCounter].Visible = true;
-                DistanceLeft += 30;
-                drawCardCounter++;
-            }
-            else
-                DrawCardsTimer.Stop();
-
-
-        }
         public void SetBoxColor(string color)//cambia il colore del riquadro
         {
-            switch (color)
-            {
-                case "re":
-                    CurrentColorBox.BackColor = Color.Red;
-                    break;
-                case "y":
-                    CurrentColorBox.BackColor = Color.Yellow;
-                    break;
-                case "b":
-                    CurrentColorBox.BackColor = Color.Blue;
-                    break;
-                case "g":
-                    CurrentColorBox.BackColor = Color.Green;
-                    break;
-            }
+            if(color.Contains("re"))
+                CurrentColorBox.BackColor = Color.Red;
+            if (color.Contains("y"))
+                CurrentColorBox.BackColor = Color.Yellow;
+            if (color.Contains("b"))
+                CurrentColorBox.BackColor = Color.Blue;
+            if (color.Contains("g"))
+                CurrentColorBox.BackColor = Color.Green;
         }
-        public void SpecialCardsEffect(carta c)//funzione che gestisce il cambio colore delle carte cc e p4
+        public bool SpecialCardsEffect(carta c)//funzione che gestisce il cambio colore delle carte cc e p4
         {
+            FieldCard = c;
             if (c.Colore == "p4" || c.Colore == "cc")
             {
                 ColorChoose = new GroupBox();
@@ -200,27 +169,41 @@ namespace UNO_Client
                 yellow.Location = new Point(11, 117);
                 yellow.Name = "y";
                 yellow.Click += new EventHandler(radioButton_CheckedChanged);
+
+                return true;
             }
+            return false;
         }
         private void CardSelected(object sender, EventArgs e)//evento chiamato dal pulsante premuto
         {
             if (isPaused == false)
             {
                 carta SelectedCard = carte.getMazzo().Find(x => x.ToString() == (sender as Button).Text);
-                if (((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore)) || (SelectedCard.Colore == "p4" || SelectedCard.Colore == "cc"))
+                if (((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore)) || SelectedCard.Colore == "cc")
                 {
-                    FieldCard = SelectedCard;
-                    SpecialCardsEffect(SelectedCard);
-                    NeutralDeck.Text = FieldCard.ToString();
-                    NeutralDeck.Image = Image.FromFile($"./CarteUNO/{NeutralDeck.Text}.png");
-                    carte.EliminateCard(SelectedCard);
-                    Deck.Remove(sender as Button);
-                    (sender as Button).Dispose();
-                    SetBoxColor(SelectedCard.Colore);
-
-                    NetworkStream ns = serverCon.Client.GetStream();
-                    Byte[] BytesToServer = Encoding.ASCII.GetBytes("et" + ";" +FieldCard.Colore+":"+FieldCard.Simbolo);
-                    ns.Write(BytesToServer, 0, BytesToServer.Length);
+                    if (SpecialCardsEffect(SelectedCard) == false)
+                    {
+                        FieldCard = SelectedCard;
+                        NeutralDeck.Text = FieldCard.ToString();
+                        NeutralDeck.Image = Image.FromFile($"./CarteUNO/{NeutralDeck.Text}.png");
+                        carte.EliminateCard(SelectedCard);
+                        Deck.Remove(sender as Button);
+                        (sender as Button).Dispose();
+                        SetBoxColor(SelectedCard.Colore);
+                        drawCardCounter--;
+                        Player.SendMessage(SelectedCard.Colore + ":" + SelectedCard.Simbolo + ";" + this.Text);
+                        if (SelectedCard.Simbolo == "s" || SelectedCard.Simbolo == "r")
+                            Block(true);
+                        else
+                            Block(false);
+                    }
+                    else
+                    {
+                        carte.EliminateCard(SelectedCard);
+                        Deck.Remove(sender as Button);
+                        (sender as Button).Dispose();
+                        drawCardCounter--;
+                    }
                 }
                 Redraw();
                 if (carte.getLength() == 1 && isPaused == false)
@@ -228,8 +211,13 @@ namespace UNO_Client
                     UNOTimer.Start();
                 }
                 if (carte.getLength() == 0)
+                {
+                    Player.SendMessage(this.Text+":"+carte.getLength().ToString());
+                    Player.CurrentMessage = "";
                     MessageBox.Show("Hai vinto!!!");
-                Block(false);
+                    Player.Close();
+                    Close();
+                }
             }
 
         }
@@ -241,31 +229,20 @@ namespace UNO_Client
             SetBoxColor(rb.Name);
             ColorChoose.Dispose();
             isPaused = false;
+
             foreach (Control con in this.Controls)
             {
                 con.Enabled = true;
             }
             if (carte.getLength() == 1)
                 UNOTimer.Start();
-        }
 
-        private void HiddenDeck_Click(object sender, EventArgs e)//evento chiamato dal pulsante(deck esterno)
-        {
-            if (isCardCompatible(carte.getMazzo(), FieldCard) == false)
+            if (FieldCard.ToString().Contains("cc"))
             {
-                carta c = new carta();
-                Button b = new Button();
-                this.Controls.Add(b);
-                c.RandomCard();
-                carte.AddCard(c);
-                b.Text = c.ToString();
-                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
-                b.Click += new System.EventHandler(CardSelected);
-                b.Visible = true;
-                b.TextAlign = ContentAlignment.MiddleRight;
-                Deck.Add(b);
-                Redraw();
+                NeutralDeck.Image = Image.FromFile($"./CarteUNO/cccc.png");
+                Player.SendMessage($"{FieldCard.Colore}:cc;{this.Text}");
             }
+            Block(false);
         }
 
         private void UNOTimer_Tick(object sender, EventArgs e)//questo timer si attiva quando mi rimane una carta
@@ -305,40 +282,88 @@ namespace UNO_Client
             if (Deck.Count == 1)
                 isUnoButtonPressed = true;
         }
-        private async Task ReceiveDataAsync()
-        {
-            try
-            {
-                NetworkStream ns = serverCon.Client.GetStream();
-                Byte[] bytesFromServer = new byte[serverCon.Client.ReceiveBufferSize];
-                Byte[] bytesToServer;
-                while (true)
-                {
-                    
-                    int bytesRead = await ns.ReadAsync(bytesFromServer, 0, bytesFromServer.Length);
-                    if (bytesRead > 0)
-                    {
-                        string response = Encoding.ASCII.GetString(bytesFromServer, 0, bytesRead);
-                        if (response.Contains("yt"))
-                        {
-                            Block(true);
-                            string[] ColoreSimbolo = response.Split(";")[1].Split(":");
-                            carta c = new carta(ColoreSimbolo[0], ColoreSimbolo[1]);
-                            FieldCard = c;
-                            NeutralDeck.Text = FieldCard.ToString();
-                            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{FieldCard.ToString()}.png");
 
-                        }
-                    }
-                    else
+        private void DrawCardsTimer_Tick(object sender, EventArgs e)
+        {
+            if (drawCardCounter < 7)
+            {
+                Deck[drawCardCounter].Top = 300;
+                Deck[drawCardCounter].Left = DistanceLeft;
+                Deck[drawCardCounter].Width = 54;
+                Deck[drawCardCounter].Height = 86;
+                Deck[drawCardCounter].Visible = true;
+                DistanceLeft += 30;
+                drawCardCounter++;
+            }
+            else
+                DrawCardsTimer.Stop();
+        }
+
+        private void ChangeCardTimer_Tick(object sender, EventArgs e)
+        {
+            if (Player.CurrentMessage != "")
+            {
+                string[] data = Player.CurrentMessage.Split(";");
+                if(Player.CurrentMessage.Contains(";") == true)
+                {
+                    if (data[1] != this.Text)
                     {
-                        await Task.Delay(100); // Attendi un breve periodo prima di leggere di nuovo lo stream
+                        string[] cardCodes = data[0].Split(":");
+                        carta c = new carta(cardCodes[0], cardCodes[1]);
+                        FieldCard = c;
+                        NeutralDeck.Text = FieldCard.ToString();
+                        
+                        if (cardCodes[1]=="cc")
+                        {
+                            NeutralDeck.Image = Image.FromFile($"./CarteUNO/cccc.png");
+                            Player.CurrentMessage = "";
+                            Block(true);
+                        }
+                        else if(cardCodes[1] == "r" || cardCodes[1] == "s")
+                        {
+                            Block(false);
+                        }
+                        else
+                        {
+                            NeutralDeck.Image = Image.FromFile($"./CarteUNO/{cardCodes[0]}{cardCodes[1]}.png");
+                            Player.CurrentMessage = "";
+                            Block(true);
+                        }
+            
+                        SetBoxColor(cardCodes[0]);
                     }
                 }
+                
+                if(Player.CurrentMessage.Contains("0") && Player.CurrentMessage.Contains(this.Text)==false)
+                {
+                    MessageBox.Show("Hai perso");
+                    Player.CurrentMessage = "";
+                    ChangeCardTimer.Stop();
+                    Player.Close();
+                    Close();
+
+                }
             }
-            catch (Exception ex)
+
+        }
+
+        private void HiddenDeck_Click(object sender, EventArgs e)
+        {
+            if (isCardCompatible(carte.getMazzo(), FieldCard) == false)
             {
-                MessageBox.Show("Errore durante la ricezione dei dati dal server: " + ex.Message);
+                carta c = new carta();
+                Button b = new Button();
+                this.Controls.Add(b);
+                c.RandomCard();
+                carte.AddCard(c);
+                b.Text = c.ToString();
+                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                b.Click += new System.EventHandler(CardSelected);
+                b.Visible = true;
+                b.TextAlign = ContentAlignment.MiddleRight;
+                drawCardCounter++;
+                Deck.Add(b);
+                Redraw();
             }
         }
 

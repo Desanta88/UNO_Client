@@ -27,7 +27,7 @@ namespace UNO_Client
             return instance;
         }
 
-        public TcpClient Client
+        public TcpClient GetClient
         {
             get { return client; }
         }

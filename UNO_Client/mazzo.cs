@@ -15,9 +15,9 @@ namespace UNO_Client
             Carte = new List<carta>();
         }
 
-        public void DrawCards()
+        public void DrawCards(int nc)
         {
-            for(int i = 0; i < 7; i++)
+            for (int i = 0; i < nc; i++)
             {
                 carta c = new carta();
                 c.RandomCard();

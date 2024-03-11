@@ -17,7 +17,9 @@ namespace UNO_Client
     {
         string server = "127.0.0.1";
         int porta = 8000;
+        string FirstNeutralCard = "";
         ServerConnection serverConnection = new ServerConnection();
+        Client client;
         Byte[] sendBytes;
         Byte[] ReceiveBytes;
         string receivedData;
@@ -27,7 +29,6 @@ namespace UNO_Client
         public Start()
         {
             InitializeComponent();
-
         }
 
 
@@ -45,14 +46,17 @@ namespace UNO_Client
             {
                 NetworkStream ns;
                 sendBytes = Encoding.ASCII.GetBytes(textBox1.Text);
-                ReceiveBytes = new Byte[serverConnection.Client.ReceiveBufferSize];
+                //ReceiveBytes = new Byte[serverConnection.Client.ReceiveBufferSize];
+                client = new Client(server, porta);
+                //serverConnection.Client.Connect(server, porta);
+                //ns = serverConnection.Client.GetStream();
+                ns = client.GetClient.GetStream();
+                ReceiveBytes = new Byte[client.GetClient.ReceiveBufferSize];
                 receivedData = Encoding.ASCII.GetString(ReceiveBytes);
-                serverConnection.Client.Connect(server, porta);
-                ns = serverConnection.Client.GetStream();
-                ns.Write(sendBytes, 0, sendBytes.Length);
-                ns.Read(ReceiveBytes);
+                client.SendMessage(textBox1.Text);
+                //ns.Read(ReceiveBytes);
                 receivedData = Encoding.ASCII.GetString(ReceiveBytes).Replace("\0", "");
-                MessageBox.Show(receivedData);
+                MessageBox.Show(client.CurrentMessage);
                 labelNotice.Visible = true;
                 timerReady.Start();
             }
@@ -60,11 +64,13 @@ namespace UNO_Client
 
         private void timerReady_Tick(object sender, EventArgs e)
         {
-            ReceiveBytes = new Byte[serverConnection.Client.ReceiveBufferSize];
-            NetworkStream ns = serverConnection.Client.GetStream();
-            ns.Read(ReceiveBytes);
-            receivedData = Encoding.ASCII.GetString(ReceiveBytes).Replace("\0", "");
-            if (receivedData == "start")
+            ReceiveBytes = new Byte[client.GetClient.ReceiveBufferSize];
+            //ReceiveBytes = new Byte[serverConnection.Client.ReceiveBufferSize];
+            //NetworkStream ns = serverConnection.Client.GetStream();
+            NetworkStream ns = client.GetClient.GetStream();
+            //ns.Read(ReceiveBytes);
+            receivedData = client.CurrentMessage.Replace("\0", "");
+            if (receivedData.Contains("start"))
             {
                 timerReady.Stop();
                 labelNotice.Text = $"la partità inizierà tra {secondi} secondi";
@@ -80,7 +86,9 @@ namespace UNO_Client
             labelNotice.Text = $"la partità inizierà tra {secondi} secondi";
             if (secondi == 0)
             {
-                Form1 form1 = new Form1(serverConnection,textBox1.Text);
+                string[] data = client.CurrentMessage.Split(";");
+                string fieldCard = data[1];
+                Form1 form1 = new Form1(client, textBox1.Text, fieldCard, data[2]);
                 timerStart.Stop();
                 this.Hide();
                 form1.ShowDialog();

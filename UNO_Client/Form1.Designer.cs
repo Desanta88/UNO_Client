@@ -29,18 +29,15 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.DrawCardsTimer = new System.Windows.Forms.Timer(this.components);
             this.NeutralDeck = new System.Windows.Forms.Button();
-            this.HiddenDeck = new System.Windows.Forms.Button();
             this.CurrentColorBox = new System.Windows.Forms.TextBox();
             this.UNOTimer = new System.Windows.Forms.Timer(this.components);
             this.UNOButton = new System.Windows.Forms.Button();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.DrawCardsTimer = new System.Windows.Forms.Timer(this.components);
+            this.ChangeCardTimer = new System.Windows.Forms.Timer(this.components);
+            this.HiddenDeck = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            // 
-            // DrawCardsTimer
-            // 
-            this.DrawCardsTimer.Interval = 800;
             // 
             // NeutralDeck
             // 
@@ -50,17 +47,6 @@
             this.NeutralDeck.TabIndex = 0;
             this.NeutralDeck.Text = "button1";
             this.NeutralDeck.UseVisualStyleBackColor = true;
-            // 
-            // HiddenDeck
-            // 
-            this.HiddenDeck.BackColor = System.Drawing.Color.Red;
-            this.HiddenDeck.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.HiddenDeck.Location = new System.Drawing.Point(293, 147);
-            this.HiddenDeck.Name = "HiddenDeck";
-            this.HiddenDeck.Size = new System.Drawing.Size(58, 86);
-            this.HiddenDeck.TabIndex = 1;
-            this.HiddenDeck.Text = "UNO";
-            this.HiddenDeck.UseVisualStyleBackColor = false;
             // 
             // CurrentColorBox
             // 
@@ -84,14 +70,35 @@
             this.UNOButton.Text = "1";
             this.UNOButton.UseVisualStyleBackColor = true;
             // 
+            // DrawCardsTimer
+            // 
+            this.DrawCardsTimer.Interval = 800;
+            this.DrawCardsTimer.Tick += new System.EventHandler(this.DrawCardsTimer_Tick);
+            // 
+            // ChangeCardTimer
+            // 
+            this.ChangeCardTimer.Interval = 500;
+            this.ChangeCardTimer.Tick += new System.EventHandler(this.ChangeCardTimer_Tick);
+            // 
+            // HiddenDeck
+            // 
+            this.HiddenDeck.BackColor = System.Drawing.Color.Red;
+            this.HiddenDeck.Location = new System.Drawing.Point(293, 147);
+            this.HiddenDeck.Name = "HiddenDeck";
+            this.HiddenDeck.Size = new System.Drawing.Size(58, 86);
+            this.HiddenDeck.TabIndex = 4;
+            this.HiddenDeck.Text = "UNO";
+            this.HiddenDeck.UseVisualStyleBackColor = false;
+            this.HiddenDeck.Click += new System.EventHandler(this.HiddenDeck_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(881, 524);
+            this.Controls.Add(this.HiddenDeck);
             this.Controls.Add(this.UNOButton);
             this.Controls.Add(this.CurrentColorBox);
-            this.Controls.Add(this.HiddenDeck);
             this.Controls.Add(this.NeutralDeck);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -101,12 +108,13 @@
         }
 
         #endregion
-        private System.Windows.Forms.Timer DrawCardsTimer;
         private Button NeutralDeck;
-        private Button HiddenDeck;
         private TextBox CurrentColorBox;
         private System.Windows.Forms.Timer UNOTimer;
         private Button UNOButton;
         private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.Timer DrawCardsTimer;
+        private System.Windows.Forms.Timer ChangeCardTimer;
+        private Button HiddenDeck;
     }
 }
