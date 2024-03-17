@@ -41,16 +41,13 @@ namespace UNO_Client
                     stream.Read(buffer, 0, buffer.Length);
                     string receivedMessage = Encoding.ASCII.GetString(buffer);
                     receivedMessage = receivedMessage.Replace("\0", "");
-                    //MessageBox.Show(receivedMessage);
                     CurrentMessage = receivedMessage;
                 }
             }
             catch (IOException)
             {
-                // If an IOException occurs, assume server disconnected
                 Console.WriteLine("Server disconnected.");
             }
-            //receiveThread.Suspend();
         }
 
         public void Close()

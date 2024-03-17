@@ -35,6 +35,8 @@
             this.StartButton = new System.Windows.Forms.Button();
             this.timerReady = new System.Windows.Forms.Timer(this.components);
             this.timerStart = new System.Windows.Forms.Timer(this.components);
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // textBox1
@@ -77,7 +79,7 @@
             // 
             // timerReady
             // 
-            this.timerReady.Interval = 2000;
+            this.timerReady.Interval = 1000;
             this.timerReady.Tick += new System.EventHandler(this.timerReady_Tick);
             // 
             // timerStart
@@ -85,18 +87,32 @@
             this.timerStart.Interval = 1000;
             this.timerStart.Tick += new System.EventHandler(this.timerStart_Tick);
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::UNO_Client.Properties.Resources.UNO_Logo;
+            this.pictureBox1.Location = new System.Drawing.Point(286, 23);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(208, 137);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 5;
+            this.pictureBox1.TabStop = false;
+            // 
             // Start
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Red;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.StartButton);
             this.Controls.Add(this.labelNotice);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
+            this.MaximumSize = new System.Drawing.Size(816, 489);
+            this.MinimumSize = new System.Drawing.Size(816, 489);
             this.Name = "Start";
             this.Text = "Start";
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -109,5 +125,6 @@
         private Button StartButton;
         private System.Windows.Forms.Timer timerReady;
         private System.Windows.Forms.Timer timerStart;
+        private PictureBox pictureBox1;
     }
 }

@@ -17,40 +17,35 @@ namespace UNO_Client
         public mazzo carte = new mazzo();//mazzo che indica le carte(non fisiche) del gioco,cioè la carta con i suoi valori come il colore 
         carta FieldCard;
         public int drawCardCounter = 0;//serve solo per l'evento del timer per distribuire le carte ogni tot secondi
-        public int DistanceLeft = 300;//distanza di una carta dal bordo sinistro della finestra
-        public bool isUnoButtonPressed = false, isPaused = false;
-        public GroupBox ColorChoose;
-        public Client Player;
-        public bool SpecialCardInEffect = false;
+        public int DistanceLeft = 50;//distanza di una carta dal bordo sinistro della finestra
+        public bool isPaused = false;//variabile che indica quando il gioco è in pausa(succede soltanto quando non è il turno di un giocatore)
+        public GroupBox ColorChoose; //la groupbox per scegliere il colore in caso di una carta +4 o cambia colore
+        public Client Player;// instanza della classe del client
        
         public Form1(Client c,string username,string fc,string ftu)
         {
             InitializeComponent();
-            this.Text = username;
+            this.Text = username;//imposta il nome della form nello username inserito nella schermata iniziale
             Player = c;
             string[] fcSymbolColor = fc.Split(":");
             FirstNeutralCard(fcSymbolColor[0], fcSymbolColor[1]);//scelgo la carta iniziale
             SetBoxColor(FieldCard.Colore);//cambio il colore del riquadro
             carte.DrawCards(7);//estrazione delle carte(classe carta)
             FirstDraw();//visualizzazione delle carte(pulsanti)
-            FirstTurn(ftu);
+            FirstTurn(ftu);//inizio del turno di un giocatore
             DrawCardsTimer.Start();//inizia il timer per la distribuzione delle carte iniziali
-            ChangeCardTimer.Start();
+            ChangeCardTimer.Start();//inizia il timer per la ricezione dei dati dal server
         }
-        public void Block(bool b)
+        public void Block(bool b)// blocca tutti i componenti visibili sulla form
         {
             foreach (Control c in this.Controls)
             {
                 c.Enabled = b;
             }
         }
-        public void FirstTurn(string cu)
+        public void FirstTurn(string cu)//funzione che decide chi inizia per primo
         {
-            if (cu == this.Text )
-            {
-                MessageBox.Show("turno di:"+this.Text);
-            }
-            else
+            if (cu != this.Text )
             {
                 Block(false);
             }
@@ -62,12 +57,11 @@ namespace UNO_Client
 
             FieldCard = card;
 
-            NeutralDeck.Text = FieldCard.ToString();
             NeutralDeck.Image = Image.FromFile($"./CarteUNO/{FieldCard.ToString()}.png");
         }
         public void Redraw()//ridisegna tutte le carte del mazzo(uso questa ogni volta che uso una carta)
         {
-            int DistanceLeft = 300;
+            int DistanceLeft = 50;
             for (int i = 0; i < Deck.Count; i++)
             {
                 Deck[i].Top = 300;
@@ -93,8 +87,7 @@ namespace UNO_Client
             {
                 Button b = new Button();
                 this.Controls.Add(b);
-                b.Text = carte.getMazzo()[drawCardCounter].ToString();
-                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                b.Image = Image.FromFile($"./CarteUNO/{carte.getMazzo()[drawCardCounter].ToString()}.png");
                 b.Click += new System.EventHandler(CardSelected);
                 b.Visible = false;
                 b.TextAlign = ContentAlignment.MiddleRight;
@@ -136,8 +129,6 @@ namespace UNO_Client
                 ColorChoose.Controls.Add(green);
                 ColorChoose.Controls.Add(yellow);
 
-                if (carte.getLength() == 1)
-                    UNOTimer.Stop();
                 foreach (Control con in this.Controls)
                 {
                     if (con != ColorChoose && Deck.Contains(con) == false)
@@ -177,14 +168,19 @@ namespace UNO_Client
         {
             if (isPaused == false)
             {
-                carta SelectedCard = carte.getMazzo().Find(x => x.ToString() == (sender as Button).Text);
+                carta SelectedCard=new carta();
+                for (int i = 0; i < carte.getLength();i++)
+                {
+                    if (Deck.IndexOf(sender as Button) == i)
+                        SelectedCard = carte.getMazzo()[i];
+                }
+
                 if (((SelectedCard.Simbolo == FieldCard.Simbolo) || (SelectedCard.Colore == FieldCard.Colore)) || (SelectedCard.Colore == "cc" || SelectedCard.Colore == "p4"))
                 {
                     if (SpecialCardsEffect(SelectedCard) == false)
                     {
                         FieldCard = SelectedCard;
-                        NeutralDeck.Text = FieldCard.ToString();
-                        NeutralDeck.Image = Image.FromFile($"./CarteUNO/{NeutralDeck.Text}.png");
+                        NeutralDeck.Image = Image.FromFile($"./CarteUNO/{FieldCard.ToString()}.png");
                         carte.EliminateCard(SelectedCard);
                         Deck.Remove(sender as Button);
                         (sender as Button).Dispose();
@@ -204,13 +200,9 @@ namespace UNO_Client
                     }
                 }
                 Redraw();
-                if (carte.getLength() == 1 && isPaused == false)
-                {
-                    UNOTimer.Start();
-                }
                 if (carte.getLength() == 0)
                 {
-                    Player.SendMessage(this.Text+":"+carte.getLength().ToString());
+                    Player.SendMessage(this.Text+":"+carte.getLength().ToString()+":"+"winner");
                     Player.CurrentMessage = "";
                     MessageBox.Show("Hai vinto!!!");
                     Player.Close();
@@ -223,7 +215,6 @@ namespace UNO_Client
         {                                                                 //quindi quando faccio la mia scelta verrà attivato questo evento
             RadioButton rb = sender as RadioButton;
             FieldCard.Colore = rb.Name;
-            NeutralDeck.Text = rb.Name;
             SetBoxColor(rb.Name);
             ColorChoose.Dispose();
             isPaused = false;
@@ -232,8 +223,6 @@ namespace UNO_Client
             {
                 con.Enabled = true;
             }
-            if (carte.getLength() == 1)
-                UNOTimer.Start();
 
             if (FieldCard.ToString().Contains("cc"))
             {
@@ -249,45 +238,7 @@ namespace UNO_Client
             }
         }
 
-        private void UNOTimer_Tick(object sender, EventArgs e)//questo timer si attiva quando mi rimane una carta
-        {
-            if (isUnoButtonPressed == true && Deck.Count != 0)
-            {
-                MessageBox.Show("UNO!");
-                UNOTimer.Stop();
-            }
-            else
-            {
-                UNOTimer.Stop();
-                MessageBox.Show("non hai premuto il pulsante UNO in tempo");
-                carta c;
-                Button b;
-                for (int i = 0; i < 3; i++)
-                {
-                    c = new carta();
-                    c.RandomCard();
-                    carte.AddCard(c);
-                    b = new Button();
-                    this.Controls.Add(b);
-                    b.Text = c.ToString();
-                    b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
-                    b.Click += new System.EventHandler(CardSelected);
-                    b.TextAlign = ContentAlignment.MiddleRight;
-                    b.Visible = true;
-                    Deck.Add(b);
-                }
-                Redraw();
-            }
-            isUnoButtonPressed = false;
-        }
-
-        private void UNOButton_Click_1(object sender, EventArgs e)//questo è quello che succede quando premo il pulsante "UNO"
-        {
-            if (Deck.Count == 1)
-                isUnoButtonPressed = true;
-        }
-
-        private void DrawCardsTimer_Tick(object sender, EventArgs e)
+        private void DrawCardsTimer_Tick(object sender, EventArgs e)//funzione del timer che aggiunge una carta alla form all'inizio del gioco
         {
             if (drawCardCounter < 7)
             {
@@ -303,37 +254,46 @@ namespace UNO_Client
                 DrawCardsTimer.Stop();
         }
 
-        private void ChangeCardTimer_Tick(object sender, EventArgs e)
+        private void ChangeCardTimer_Tick(object sender, EventArgs e)//funzione del timer per la ricezione dei messaggi
         {
             if (Player.CurrentMessage != "")
             {
                 string[] data = Player.CurrentMessage.Split(";");
                 if(Player.CurrentMessage.Contains(";") == true)
                 {
-                    if (data[1] != this.Text)
+                    if (data[1] != this.Text)// costrutto che fa determinate azione in base alla carta giocata dall'avversario
                     {
                         string[] cardCodes = data[0].Split(":");
                         carta c = new carta(cardCodes[0], cardCodes[1]);
                         FieldCard = c;
-                        NeutralDeck.Text = FieldCard.ToString();
 
                         if (cardCodes[1] == "p4")
                         {
+                            int MaxP4Number = 0,i=0;
                             NeutralDeck.Image = Image.FromFile($"./CarteUNO/p4p4.png");
                             Player.CurrentMessage = "";
-                            for (int i = 0; i < 4; i++)
+                            while(i<4)
                             {
                                 c = new carta();
                                 c.RandomCard();
-                                carte.AddCard(c);
-                                Button b = new Button();
-                                this.Controls.Add(b);
-                                b.Text = c.ToString();
-                                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
-                                b.Click += new System.EventHandler(CardSelected);
-                                b.TextAlign = ContentAlignment.MiddleRight;
-                                b.Visible = true;
-                                Deck.Add(b);
+                                if (c.Simbolo != "p4")
+                                {
+                                    carte.AddCard(c);
+                                    Button b = new Button();
+                                    this.Controls.Add(b);
+                                    b.Image = Image.FromFile($"./CarteUNO/{c.ToString()}.png");
+                                    b.Click += new System.EventHandler(CardSelected);
+                                    b.TextAlign = ContentAlignment.MiddleRight;
+                                    b.Visible = true;
+                                    Deck.Add(b);
+                                    MaxP4Number++;
+                                    i++;
+                                }
+                                else
+                                {
+                                    int y = i;
+                                    i = y;
+                                }
                             }
                             Redraw();
                             Block(false);
@@ -349,8 +309,7 @@ namespace UNO_Client
                                 carte.AddCard(c);
                                 Button b = new Button();
                                 this.Controls.Add(b);
-                                b.Text = c.ToString();
-                                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                                b.Image = Image.FromFile($"./CarteUNO/{c.ToString()}.png");
                                 b.Click += new System.EventHandler(CardSelected);
                                 b.TextAlign = ContentAlignment.MiddleRight;
                                 b.Visible = true;
@@ -380,20 +339,19 @@ namespace UNO_Client
                     }
                 }
                 
-                if(Player.CurrentMessage.Contains("0") && Player.CurrentMessage.Contains(this.Text)==false)
+                if(Player.CurrentMessage.Contains("0") && Player.CurrentMessage.Contains(this.Text)==false)//costrutto che viene azionato quando ha perso
                 {
-                    MessageBox.Show("Hai perso");
                     Player.CurrentMessage = "";
-                    ChangeCardTimer.Stop();
                     Player.Close();
-                    Close();
+                    ChangeCardTimer.Dispose();
+                    Environment.Exit(1);
 
                 }
             }
 
         }
 
-        private void HiddenDeck_Click(object sender, EventArgs e)
+        private void HiddenDeck_Click(object sender, EventArgs e)// funzione azionata quando si clicca sulla carta ribaltata
         {
             if (isCardCompatible(carte.getMazzo(), FieldCard) == false)
             {
@@ -402,20 +360,14 @@ namespace UNO_Client
                 this.Controls.Add(b);
                 c.RandomCard();
                 carte.AddCard(c);
-                b.Text = c.ToString();
-                b.Image = Image.FromFile($"./CarteUNO/{b.Text}.png");
+                b.Image = Image.FromFile($"./CarteUNO/{c.ToString()}.png");
                 b.Click += new System.EventHandler(CardSelected);
                 b.Visible = true;
                 b.TextAlign = ContentAlignment.MiddleRight;
                 Deck.Add(b);
                 Redraw();
-                HiddenDeckCount++;
             }
         }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
     }
+
 }
